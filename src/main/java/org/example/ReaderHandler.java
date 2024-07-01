@@ -28,14 +28,13 @@ public class ReaderHandler {
         }
     }
 
-    public ResultSet addReader(String userName) throws SQLException {
+    public void addReader(String userName) throws SQLException {
         String query = "INSERT INTO readers (readername) VALUES (?)";
         ResultSet resultSet;
         try (PreparedStatement insertStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)){
             insertStatement.setString(1, userName);
             insertStatement.executeUpdate();
             resultSet = insertStatement.getGeneratedKeys();
-            return resultSet;
         }
     }
 }
