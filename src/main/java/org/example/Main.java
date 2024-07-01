@@ -15,6 +15,9 @@ public class Main {
         String username = DBConfig.getUsername();
         String password = DBConfig.getPassword();
 
+        // Initialize handlers
+
+
 
         try {
             // Load MySql JDBC driver
@@ -31,7 +34,6 @@ public class Main {
                 // Validate that user has an account; if not ask if they would like to create one---------------------------
                 System.out.print("Please enter your name: ");
                 String userName = scanner.nextLine();
-
 
                 query = "SELECT * FROM readers WHERE readername = '" + userName + "'";
                 resultSet = statement.executeQuery(query);
@@ -63,6 +65,7 @@ public class Main {
                         }
                     }
                 }
+
                 System.out.println("What can I do for you today? (Enter Number)");
 
                 while (true) {
@@ -75,8 +78,6 @@ public class Main {
                     int toDo = scanner.nextInt();
                     scanner.nextLine();
 
-//                    String selectQuery = "";
-//                    PreparedStatement selectStatement = connection.prepareStatement(selectQuery);
                     switch (toDo) {
                         case 1:
                             System.out.println("You want to add a book. First I will need several things.");
@@ -93,12 +94,6 @@ public class Main {
                             System.out.print("Was it a physical or digital book (P or D)? ");
                             String digital_or_physical = scanner.nextLine();
 
-//                            // Retrieve user id based on name which IS in tracker
-//                            selectQuery = "SELECT idreader FROM readers WHERE readername = ?";
-//                            selectStatement = connection.prepareStatement(selectQuery);
-//                            selectStatement.setString(1, userName);
-//                            user_id = resultSet.getInt("idreader");
-//
 
                             // Populate query to insert new book
                             String insertQuery = "INSERT INTO books (title, author, fk_books_idreader, read_or_not, digital_or_physical) " + "VALUES  (?, ?, ?, ?, ?)"; // ('"+ title + "', '" + author + "', '" + user_id + "', '" + read_or_not + "', '" + digital_or_physical + "')";
@@ -116,7 +111,7 @@ public class Main {
                             } else {
                                 System.out.println("Failed to add book!");
                             }
-
+                            insertStatement.close();
                             break;
                         case 2:
                             System.out.println("You chose to edit a book's status. What is the title of the book?");
@@ -219,6 +214,32 @@ public class Main {
 
                             break;
                         case 4:
+                            System.out.println("You want all the books you have NOT read. Just a moment while I gather the information.");
+
+                            selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? AND read_or_not = 'N' ORDER BY title ASC ";
+                            selectStatement = connection.prepareStatement(selectQuery);
+                            selectStatement.setInt(1, user_id);
+
+                            resultSet = selectStatement.executeQuery();
+                            System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
+
+                            if (!resultSet.next()) {
+                                System.out.println("You do not have any unread books in the tracker!");
+                            } else {
+                                do {
+                                    // Process each row of the result set here
+                                    title = resultSet.getString("title");
+                                    author = resultSet.getString("author");
+                                    String format = resultSet.getString("digital_or_physical");
+
+                                    // Example: Print out the details
+                                    System.out.printf("%-40s %-40s %-15s%n", title, author, format);
+
+                                } while (resultSet.next());
+                            }
+
+                            System.out.println();
+
                             break;
                         case 5:
                             System.out.println("Thank you for using Book Tracker by Art. Have a great day!");
