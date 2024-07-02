@@ -30,10 +30,10 @@ public class Main {
         while (true) {
             // WELCOME USER TO APP--------------------------------------------------------------------------------------
             System.out.println("Welcome to Book Tracker by Art!");
-
             String userChoice;
             int userId;
             boolean proceed = true;
+
                 while (true) {
                     // Validate that user has an account; if not ask if they would like to create one---------------------------
                     System.out.print("Please enter your name: ");
@@ -88,9 +88,9 @@ public class Main {
 
                         // Job duty options which will be handled by BookHandler
                         switch (toDo) {
+                            // Add Book
                             case 1:
                                 System.out.println("You want to add a book. First I will need several things.");
-
                                 System.out.print("What is the title of the book? ");
                                 String title = scanner.nextLine();
 
@@ -103,146 +103,137 @@ public class Main {
                                 System.out.print("Was it a physical or digital book (P or D)? ");
                                 String digital_or_physical = scanner.nextLine();
 
+                                // Call book handler to add book
                                 bookHandler.addBook(title, author, userId, read_or_not, digital_or_physical);
 
-                                // Verify change occured, if rows affected >= 1 added; else not added
                                 System.out.println("Book added successfully!");
-                                int rowsAffected;
                                 break;
+
                             case 2:
                                 System.out.println("You chose to edit a book's status. What is the title of the book?");
                                 String bookTitle = scanner.nextLine();
-                                boolean bookFound = false;
+                                boolean bookFound = true;
                                 int attemptCount = 0;
 
-                                while (attemptCount < 3) { // Allow up to 3 attempts
-                                    query = "SELECT * FROM books WHERE title = ?";
-                                    PreparedStatement preparedStatement = connection.prepareStatement(query);
-                                    preparedStatement.setString(1, bookTitle);
-                                    resultSet = preparedStatement.executeQuery();
+                                while (attemptCount < 2) { // Allow up to 3 attempts
+                                    bookFound = bookHandler.isBook(bookTitle);
 
-                                    if (resultSet.next()) {
+                                    if (bookFound) {
                                         System.out.println("Book is in the tracker. Let's update it.");
-                                        bookFound = true;
                                         break;
                                     } else {
                                         System.out.println("Book was not found. Try again. What is the title of the book?");
                                         bookTitle = scanner.nextLine();
                                         attemptCount++;
                                     }
-
-                                    preparedStatement.close();
                                 }
-
                                 if (!bookFound) {
-                                    System.out.println("You attempted to enter the book 3 times and it was not found. Exiting to Main Menu.");
-                                    System.out.println("I recommend adding the book.");
+                                    System.out.println("You attempted to enter the book 3 times and it was not found. I recommend add the book.");
+                                    System.out.println("Exiting to Main Menu...");
                                     break;
                                 }
-
                                 // Retrieve current status based on the name which IS in the tracker
-                                String selectQuery = "SELECT read_or_not FROM books WHERE title = ?";
-                                PreparedStatement selectStatement = connection.prepareStatement(selectQuery);
-                                selectStatement.setString(1, bookTitle);
-                                resultSet = selectStatement.executeQuery();
+//                                String selectQuery = "SELECT read_or_not FROM books WHERE title = ?";
+//                                PreparedStatement selectStatement = connection.prepareStatement(selectQuery);
+//                                selectStatement.setString(1, bookTitle);
+//                                resultSet = selectStatement.executeQuery();
 
-                                if (resultSet.next()) {
-                                    String currentStatus = resultSet.getString("read_or_not");
-                                    // Ternary Conditional
-                                    String currentStatusMeaning = currentStatus.equalsIgnoreCase("N") ? "Not Read" : "Has Been Read";
-                                    System.out.println("Current status for the book: " + currentStatusMeaning);
+                                String currentStatus = bookHandler.getBookStatus(bookTitle);
+                                // Ternary Conditional
+                                String currentStatusMeaning = currentStatus.equalsIgnoreCase("N") ? "Not Read" : "Has Been Read";
+                                System.out.println("Current status for the book: " + currentStatusMeaning);
 
-                                    String newStatus;
-                                    while (true) {
-                                        System.out.println("What is the new status of the book? (Enter Y for read and N for not read)");
-                                        newStatus = scanner.nextLine().toUpperCase();
-                                        if (newStatus.equals("Y") || newStatus.equals("N")) {
-                                            break;
-                                        } else {
-                                            System.out.println("Invalid input. Please enter Y for read or N for not read.");
-                                        }
-                                    }
-
-                                    query = "UPDATE books SET read_or_not = ? WHERE title = ?";
-                                    PreparedStatement updateStatement = connection.prepareStatement(query);
-                                    updateStatement.setString(1, newStatus);
-                                    updateStatement.setString(2, bookTitle);
-
-                                    rowsAffected = updateStatement.executeUpdate();
-                                    if (rowsAffected > 0) {
-                                        System.out.println("Book status updated successfully!");
+                                String newStatus;
+                                String newStatusMeaning;
+                                while (true) {
+                                    System.out.println("What is the new status of the book? (Enter Y for read and N for not read)");
+                                    newStatus = scanner.nextLine().toUpperCase();
+                                    if (newStatus.equalsIgnoreCase("Y")){
+                                        newStatusMeaning = "Has Been Read";
+                                        break;
+                                    } else if (newStatus.equalsIgnoreCase("N")) {
+                                        newStatusMeaning = "Has NOT been Read";
+                                        break;
                                     } else {
-                                        System.out.println("Failed to update book status.");
+                                        System.out.println("Invalid input. Please enter Y for read or N for not read.");
                                     }
+                                }
 
-                                    updateStatement.close();
+//                                query = "UPDATE books SET read_or_not = ? WHERE title = ?";
+//                                PreparedStatement updateStatement = connection.prepareStatement(query);
+//                                updateStatement.setString(1, newStatus);
+//                                updateStatement.setString(2, bookTitle);
+//
+//                                rowsAffected = updateStatement.executeUpdate();
+
+                                int rowsAffected = bookHandler.updateBookStatus(newStatus, bookTitle);
+                                if (rowsAffected > 0) {
+                                    System.out.println(bookTitle + " status was successfully updated to: " + newStatusMeaning);
                                 } else {
-                                    System.out.println("Error retrieving current status.");
+                                    System.out.println("Failed to update book status.");
                                 }
-
-                                selectStatement.close();
                                 break;
 
-                            case 3:
-                                System.out.println("You want all the books you have read. Just a moment while I gather the information.");
-
-                                selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? AND read_or_not = 'Y' ORDER BY title ASC ";
-                                selectStatement = connection.prepareStatement(selectQuery);
-                                selectStatement.setInt(1, userId);
-
-                                resultSet = selectStatement.executeQuery();
-                                System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
-
-                                while (resultSet.next()) {
-                                    title = resultSet.getString("title");
-                                    author = resultSet.getString("author");
-                                    String format = resultSet.getString("digital_or_physical");
-
-                                    if (format.equalsIgnoreCase("D")) {
-                                        format = "Digital";
-                                    } else {
-                                        format = "Physical";
-                                    }
-                                    System.out.printf("%-40s %-34s %-10s%n", title, author, format);
-
-                                }
-                                System.out.println();
-
-                                break;
-                            case 4:
-                                System.out.println("You want all the books you have NOT read. Just a moment while I gather the information.");
-
-                                selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? AND read_or_not = 'N' ORDER BY title ASC ";
-                                selectStatement = connection.prepareStatement(selectQuery);
-                                selectStatement.setInt(1, userId);
-
-                                resultSet = selectStatement.executeQuery();
-                                System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
-
-                                if (!resultSet.next()) {
-                                    System.out.println("You do not have any unread books in the tracker!");
-                                } else {
-                                    do {
-                                        // Process each row of the result set here
-                                        title = resultSet.getString("title");
-                                        author = resultSet.getString("author");
-                                        String format = resultSet.getString("digital_or_physical");
-
-                                        // Example: Print out the details
-                                        System.out.printf("%-40s %-40s %-15s%n", title, author, format);
-
-                                    } while (resultSet.next());
-                                }
-
-                                System.out.println();
-
-                                break;
-                            case 5:
-                                System.out.println("Thank you for using Book Tracker by Art. Have a great day!");
-                                return;
-                            default:
-                                System.out.println("Invalid Number. Choose a number between 1 and 5.");
-                                break;
+//                            case 3:
+//                                System.out.println("You want all the books you have read. Just a moment while I gather the information.");
+//
+//                                selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? AND read_or_not = 'Y' ORDER BY title ASC ";
+//                                selectStatement = connection.prepareStatement(selectQuery);
+//                                selectStatement.setInt(1, userId);
+//
+//                                resultSet = selectStatement.executeQuery();
+//                                System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
+//
+//                                while (resultSet.next()) {
+//                                    title = resultSet.getString("title");
+//                                    author = resultSet.getString("author");
+//                                    String format = resultSet.getString("digital_or_physical");
+//
+//                                    if (format.equalsIgnoreCase("D")) {
+//                                        format = "Digital";
+//                                    } else {
+//                                        format = "Physical";
+//                                    }
+//                                    System.out.printf("%-40s %-34s %-10s%n", title, author, format);
+//
+//                                }
+//                                System.out.println();
+//
+//                                break;
+//                            case 4:
+//                                System.out.println("You want all the books you have NOT read. Just a moment while I gather the information.");
+//
+//                                selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? AND read_or_not = 'N' ORDER BY title ASC ";
+//                                selectStatement = connection.prepareStatement(selectQuery);
+//                                selectStatement.setInt(1, userId);
+//
+//                                resultSet = selectStatement.executeQuery();
+//                                System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
+//
+//                                if (!resultSet.next()) {
+//                                    System.out.println("You do not have any unread books in the tracker!");
+//                                } else {
+//                                    do {
+//                                        // Process each row of the result set here
+//                                        title = resultSet.getString("title");
+//                                        author = resultSet.getString("author");
+//                                        String format = resultSet.getString("digital_or_physical");
+//
+//                                        // Example: Print out the details
+//                                        System.out.printf("%-40s %-40s %-15s%n", title, author, format);
+//
+//                                    } while (resultSet.next());
+//                                }
+//
+//                                System.out.println();
+//
+//                                break;
+//                            case 5:
+//                                System.out.println("Thank you for using Book Tracker by Art. Have a great day!");
+//                                return;
+//                            default:
+//                                System.out.println("Invalid Number. Choose a number between 1 and 5.");
+//                                break;
                         }
                         System.out.println("Is there anything else I can do for you?");
                     }
