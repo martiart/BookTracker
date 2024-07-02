@@ -58,5 +58,30 @@ public class BookHandler {
             return rowsAffected;
         }
     }
+
+    public void getBooks(int userId, String choice) throws SQLException{
+        String selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? and read_or_not = ? ORDER BY title ASC";
+        try (PreparedStatement selectStatement = connection.prepareStatement(selectQuery)){
+            selectStatement.setInt(1, userId);
+            selectStatement.setString(2, choice);
+
+            try (ResultSet resultSet = selectStatement.executeQuery()){
+                System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
+                while (resultSet.next()) {
+                    String title = resultSet.getString("title");
+                    String author = resultSet.getString("author");
+                    String format = resultSet.getString("digital_or_physical");
+
+                    if (format.equalsIgnoreCase("D")) {
+                        format = "Digital";
+                    } else {
+                        format = "Physical";
+                    }
+                    System.out.printf("%-40s %-34s %-10s%n", title, author, format);
+                }
+                System.out.println();
+            }
+        }
+    }
 }
 

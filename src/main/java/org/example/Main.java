@@ -30,14 +30,15 @@ public class Main {
         while (true) {
             // WELCOME USER TO APP--------------------------------------------------------------------------------------
             System.out.println("Welcome to Book Tracker by Art!");
+            System.out.println();
             String userChoice;
             int userId;
             boolean proceed = true;
-
+            String userName;
                 while (true) {
                     // Validate that user has an account; if not ask if they would like to create one---------------------------
                     System.out.print("Please enter your name: ");
-                    String userName = scanner.nextLine();
+                    userName = scanner.nextLine();
 
                     // Call getReadId to verify if name in database
                     userId = readerHandler.getReaderId(userName);
@@ -72,7 +73,7 @@ public class Main {
                 if (!proceed) {
                     break;
                 }
-                    System.out.println("What can I do for you today? (Enter Number)");
+                    System.out.println(userName + ", what can I do for you? (Enter Number)");
                     // User is valid and wants to continue into the main application functionality
                     while (true) {
                         // Menu options of actions that can be performed
@@ -85,6 +86,7 @@ public class Main {
                         System.out.print("Number Choice: ");
                         int toDo = scanner.nextInt();
                         scanner.nextLine();
+                        System.out.println();
 
                         // Job duty options which will be handled by BookHandler
                         switch (toDo) {
@@ -94,6 +96,13 @@ public class Main {
                                 System.out.print("What is the title of the book? ");
                                 String title = scanner.nextLine();
 
+                                boolean alreadyExists = bookHandler.isBook(title);
+                                if (alreadyExists){
+                                    System.out.println(title + " --- Already exists in your collection");
+                                    System.out.println("Consider editing the book status. Exiting to Main Menu");
+                                    System.out.println();
+                                    break;
+                                }
                                 System.out.print("Who is the author? ");
                                 String author = scanner.nextLine();
 
@@ -108,9 +117,8 @@ public class Main {
 
                                 System.out.println("Book added successfully!");
                                 break;
-
                             case 2:
-                                System.out.println("You chose to edit a book's status. What is the title of the book?");
+                                System.out.print("You chose to edit a book's status. What is the title of the book?");
                                 String bookTitle = scanner.nextLine();
                                 boolean bookFound = true;
                                 int attemptCount = 0;
@@ -132,11 +140,6 @@ public class Main {
                                     System.out.println("Exiting to Main Menu...");
                                     break;
                                 }
-                                // Retrieve current status based on the name which IS in the tracker
-//                                String selectQuery = "SELECT read_or_not FROM books WHERE title = ?";
-//                                PreparedStatement selectStatement = connection.prepareStatement(selectQuery);
-//                                selectStatement.setString(1, bookTitle);
-//                                resultSet = selectStatement.executeQuery();
 
                                 String currentStatus = bookHandler.getBookStatus(bookTitle);
                                 // Ternary Conditional
@@ -146,7 +149,7 @@ public class Main {
                                 String newStatus;
                                 String newStatusMeaning;
                                 while (true) {
-                                    System.out.println("What is the new status of the book? (Enter Y for read and N for not read)");
+                                    System.out.print("What is the new status of the book (Enter Y for read and N for not read)? ");
                                     newStatus = scanner.nextLine().toUpperCase();
                                     if (newStatus.equalsIgnoreCase("Y")){
                                         newStatusMeaning = "Has Been Read";
@@ -159,13 +162,6 @@ public class Main {
                                     }
                                 }
 
-//                                query = "UPDATE books SET read_or_not = ? WHERE title = ?";
-//                                PreparedStatement updateStatement = connection.prepareStatement(query);
-//                                updateStatement.setString(1, newStatus);
-//                                updateStatement.setString(2, bookTitle);
-//
-//                                rowsAffected = updateStatement.executeUpdate();
-
                                 int rowsAffected = bookHandler.updateBookStatus(newStatus, bookTitle);
                                 if (rowsAffected > 0) {
                                     System.out.println(bookTitle + " status was successfully updated to: " + newStatusMeaning);
@@ -174,67 +170,28 @@ public class Main {
                                 }
                                 break;
 
-//                            case 3:
-//                                System.out.println("You want all the books you have read. Just a moment while I gather the information.");
-//
-//                                selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? AND read_or_not = 'Y' ORDER BY title ASC ";
-//                                selectStatement = connection.prepareStatement(selectQuery);
-//                                selectStatement.setInt(1, userId);
-//
-//                                resultSet = selectStatement.executeQuery();
-//                                System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
-//
-//                                while (resultSet.next()) {
-//                                    title = resultSet.getString("title");
-//                                    author = resultSet.getString("author");
-//                                    String format = resultSet.getString("digital_or_physical");
-//
-//                                    if (format.equalsIgnoreCase("D")) {
-//                                        format = "Digital";
-//                                    } else {
-//                                        format = "Physical";
-//                                    }
-//                                    System.out.printf("%-40s %-34s %-10s%n", title, author, format);
-//
-//                                }
-//                                System.out.println();
-//
-//                                break;
-//                            case 4:
-//                                System.out.println("You want all the books you have NOT read. Just a moment while I gather the information.");
-//
-//                                selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? AND read_or_not = 'N' ORDER BY title ASC ";
-//                                selectStatement = connection.prepareStatement(selectQuery);
-//                                selectStatement.setInt(1, userId);
-//
-//                                resultSet = selectStatement.executeQuery();
-//                                System.out.printf("%-40s %-29s %-10s%n", "-----TITLE-----", "-----AUTHOR-----", "-----FORMAT-----");
-//
-//                                if (!resultSet.next()) {
-//                                    System.out.println("You do not have any unread books in the tracker!");
-//                                } else {
-//                                    do {
-//                                        // Process each row of the result set here
-//                                        title = resultSet.getString("title");
-//                                        author = resultSet.getString("author");
-//                                        String format = resultSet.getString("digital_or_physical");
-//
-//                                        // Example: Print out the details
-//                                        System.out.printf("%-40s %-40s %-15s%n", title, author, format);
-//
-//                                    } while (resultSet.next());
-//                                }
-//
-//                                System.out.println();
-//
-//                                break;
-//                            case 5:
-//                                System.out.println("Thank you for using Book Tracker by Art. Have a great day!");
-//                                return;
-//                            default:
-//                                System.out.println("Invalid Number. Choose a number between 1 and 5.");
-//                                break;
+                            case 3:
+                                System.out.println("You want all the books you have read. Just a moment while I gather the information.");
+                                System.out.println();
+                                String choice = "Y";
+
+                                bookHandler.getBooks(userId, choice);
+                                break;
+                            case 4:
+                                System.out.println("You want all the books you have NOT read. Just a moment while I gather the information.");
+                                System.out.println();
+                                choice = "N";
+
+                                bookHandler.getBooks(userId, choice);
+                                break;
+                            case 5:
+                                System.out.println("Thank you for using Book Tracker by Art. Have a great day!");
+                                return;
+                            default:
+                                System.out.println("Invalid Number. Choose a number between 1 and 5.");
+                                break;
                         }
+                        System.out.println();
                         System.out.println("Is there anything else I can do for you?");
                     }
 
