@@ -1,13 +1,28 @@
 package org.example;
 import java.sql.*;
 
+
 public class BookHandler {
     private Connection connection;
-
+    /**
+     * Constructor to initialize the BookHandler with a database connection.
+     *
+     * @param connection The database connection
+     */
     public BookHandler(Connection connection) {
         this.connection = connection;
     }
 
+    /**
+     * Adds a book to the database.
+     *
+     * @param title The title of the book
+     * @param author The author of the book
+     * @param userId The ID of the user adding the book
+     * @param readOrNot Indicates if the book has been read (Y or N)
+     * @param digitalOrPhysical Indicates if the book is digital or physical (D or P)
+     * @throws SQLException if a database access error occurs
+     */
     public void addBook(String title, String author, int userId, String readOrNot, String digitalOrPhysical) throws SQLException {
         String query = "INSERT INTO books (title, author, fk_books_idreader, read_or_not, digital_or_physical) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement insertStatement = connection.prepareStatement(query)) {
@@ -22,6 +37,13 @@ public class BookHandler {
         }
     }
 
+    /**
+     * Checks if a book exists in the database.
+     *
+     * @param bookTitle The title of the book to check
+     * @return true if the book exists, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
     public boolean isBook(String bookTitle) throws SQLException {
         String query = "SELECT * FROM books WHERE title = ?";
         boolean bookfound = true;
@@ -34,6 +56,13 @@ public class BookHandler {
         }
     }
 
+    /**
+     * Gets the read status of a book.
+     *
+     * @param bookTitle The title of the book
+     * @return The read status of the book ("Y" for read, "N" for not read)
+     * @throws SQLException if a database access error occurs or if the book is not found
+     */
     public String getBookStatus(String bookTitle) throws SQLException {
         String query = "SELECT read_or_not FROM books WHERE title = ?";
         try (PreparedStatement selectStatement = connection.prepareStatement(query)) {
@@ -48,6 +77,14 @@ public class BookHandler {
         }
     }
 
+    /**
+     * Updates the read status of a book.
+     *
+     * @param newStatus The new read status of the book ("Y" for read, "N" for not read)
+     * @param bookTitle The title of the book
+     * @return The number of rows affected by the update
+     * @throws SQLException if a database access error occurs
+     */
     public int updateBookStatus(String newStatus, String bookTitle) throws SQLException {
         String query = "UPDATE books SET read_or_not = ? WHERE title = ?";
         try (PreparedStatement updateStatement = connection.prepareStatement(query)) {
@@ -59,6 +96,13 @@ public class BookHandler {
         }
     }
 
+    /**
+     * Retrieves books for a user based on their read status.
+     *
+     * @param userId The ID of the user
+     * @param choice The read status to filter books ("Y" for read, "N" for not read)
+     * @throws SQLException if a database access error occurs
+     */
     public void getBooks(int userId, String choice) throws SQLException{
         String selectQuery = "SELECT title, author, digital_or_physical FROM books WHERE fk_books_idreader = ? and read_or_not = ? ORDER BY title ASC";
         try (PreparedStatement selectStatement = connection.prepareStatement(selectQuery)){
