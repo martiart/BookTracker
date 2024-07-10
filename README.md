@@ -1,8 +1,9 @@
 Book Tracker Application
+
 Overview----
-Book Tracker is a Java-based application that allows users to track their reading habits. 
-Users can add books, update their reading status, and retrieve lists of read and unread books. 
-The application uses JDBC to connect to a MySQL database and is built using Maven for dependency management.
+- Book Tracker is a Java-based application that allows users to track their reading habits. 
+- Users can add books, update their reading status, and retrieve lists of read and unread books. 
+- The application uses JDBC to connect to a MySQL database and is built using Maven for dependency management.
 
 Features----
 - Add new books with details like title, author, reading status, and format (physical or digital).
@@ -21,8 +22,8 @@ FEATURES TO COME----
 
 
 Technologies Used----
-Java
-Maven
-JDBC
+Java,
+Maven,
+JDBC,
 MySQL
 
