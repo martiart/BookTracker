@@ -22,8 +22,12 @@ FEATURES TO COME----
 
 
 Technologies Used----
-Java,
-Maven,
-JDBC,
-MySQL
+
+- Java
+
+- Maven
+
+- JDBC
+
+- MySQL
 
