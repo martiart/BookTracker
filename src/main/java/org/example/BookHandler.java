@@ -46,8 +46,8 @@ public class BookHandler {
      */
     public boolean isBook(String bookTitle) throws SQLException {
         String query = "SELECT * FROM books WHERE title = ?";
-        boolean bookfound = true;
-        int attemptCount = 0;
+//        boolean bookfound = true;
+//        int attemptCount = 0;
         try (PreparedStatement checkStatement = connection.prepareStatement(query)) {
             checkStatement.setString(1, bookTitle);
             try (ResultSet resultSet = checkStatement.executeQuery()) {
